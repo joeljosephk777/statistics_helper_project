@@ -1,7 +1,7 @@
 # Statistics Helper Project
 
-A Python-based statistics helper that calculates descriptive statistics and generates visualizations.
-
+A Python-based statistics helper that calculates descriptive statistics and generates visualizations. Was made to help out in statistics class turning laborious work into a learning opportunity.
+ 
 ## Features
 - Mean, median, mode
 - Range, variance, standard deviation (sample)
