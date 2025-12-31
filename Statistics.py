@@ -92,6 +92,44 @@ def calculate_quartiles(arr):
     
     return q1, q2, q3
 
+def detect_outliers_iqr(arr, q1, q3):
+    """Detect outliers using 1.5 × IQR rule"""
+    iqr = q3 - q1
+    lower_fence = q1 - 1.5 * iqr
+    upper_fence = q3 + 1.5 * iqr
+    outliers = [x for x in arr if x < lower_fence or x > upper_fence]
+    return outliers, lower_fence, upper_fence
+
+def calculate_z_scores(arr, mean, std_dev):
+    """Calculate z-score for each value"""
+    return [(x - mean) / std_dev for x in arr]
+
+def value_to_z(x, mean, std_dev):
+    """Convert a single value to z-score"""
+    z = (x - mean) / std_dev
+    return z
+
+def check_skewness(mean, median):
+    """Determine distribution skewness""" 
+    # need to make sure its not absolute there is no margin for error
+    if mean > median:
+        return "Right-skewed (positive)"
+    elif mean < median:
+        return "Left-skewed (negative)"
+    else:
+        return "Approximately symmetric"
+    
+def five_number_summary(arr, q1, median, q3):
+    """Return min, Q1, median, Q3, max"""
+    return {
+        'min': min(arr),
+        'Q1': q1,
+        'median': median,
+        'Q3': q3,
+        'max': max(arr),
+        'IQR': q3 - q1
+    }
+
 def create_visualizations(arr, mean, std_dev, q1, median, q3):
     """Create box plot and histogram using matplotlib"""
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(14, 10))
@@ -174,8 +212,8 @@ def create_visualizations(arr, mean, std_dev, q1, median, q3):
     plt.show()
 
 # Example usage - sample data set
-numbers = [0.2, 2, 6, 10, 11, 13, 13, 17, 17, 23, 27, 28, 35, 64 ]
-
+# Example usage - sample data set
+numbers = [0.2, 2, 6, 10, 11, 13, 13, 17, 17, 23, 27, 28, 35, 64]
 
 print(f"Original numbers: {numbers}")
 
@@ -190,28 +228,73 @@ mode = calculate_mode(sorted_numbers)
 variance = calculate_variance(sorted_numbers, mean)
 std_deviation = calculate_standard_deviation(variance)
 range_value = calculate_range(sorted_numbers)
+q1, q2, q3 = calculate_quartiles(sorted_numbers)
 
-print(f"\nStatistics:")
-print(f"number of elements:{len(numbers)}")
-print(f"Mean: {mean:.4f}")
-print(f"Median: {median}")
-print(f"Mode: {mode}")
-print(f"Range: {range_value}")
-print(f"Variance: {variance:.4f}")
-print(f"Standard Deviation: {std_deviation:.4f}")
+print(f"\n{'='*50}")
+print(f"DESCRIPTIVE STATISTICS")
+print(f"{'='*50}")
+print(f"Number of elements: {len(numbers)}")
+print(f"Mean (x̄):           {mean:.4f}")
+print(f"Median:             {median}")
+print(f"Mode:               {mode}")
+print(f"Range:              {range_value}")
+print(f"Variance (s²):      {variance:.4f}")
+print(f"Standard Dev (s):   {std_deviation:.4f}")
 
+# Five-number summary
+print(f"\n{'='*50}")
+print(f"FIVE-NUMBER SUMMARY")
+print(f"{'='*50}")
+five_num = five_number_summary(sorted_numbers, q1, median, q3)
+print(f"Min:    {five_num['min']}")
+print(f"Q1:     {five_num['Q1']}")
+print(f"Median: {five_num['median']}")
+print(f"Q3:     {five_num['Q3']}")
+print(f"Max:    {five_num['max']}")
+print(f"IQR:    {five_num['IQR']}")
+
+# Outlier detection
+print(f"\n{'='*50}")
+print(f"OUTLIER DETECTION (IQR Method)")
+print(f"{'='*50}")
+outliers, lower_fence, upper_fence = detect_outliers_iqr(sorted_numbers, q1, q3)
+print(f"Lower Fence: {lower_fence:.4f}")
+print(f"Upper Fence: {upper_fence:.4f}")
+print(f"Outliers:    {outliers if outliers else 'None detected'}")
+
+# Skewness
+print(f"\n{'='*50}")
+print(f"DISTRIBUTION SHAPE")
+print(f"{'='*50}")
+skewness = check_skewness(mean, median)
+print(f"Skewness: {skewness}")
+print(f"(Mean - Median = {mean - median:.4f})")
+
+# Intervals
+print(f"\n{'='*50}")
+print(f"STANDARD DEVIATION INTERVALS")
+print(f"{'='*50}")
 intervals = calculate_intervals(mean, std_deviation)
-print(f"\nIntervals:")
-print(f"x̄ ± s  = ({intervals['1s'][0]:.3f}, {intervals['1s'][1]:.3f})")
+print(f"x̄ ± 1s = ({intervals['1s'][0]:.3f}, {intervals['1s'][1]:.3f})")
 print(f"x̄ ± 2s = ({intervals['2s'][0]:.3f}, {intervals['2s'][1]:.3f})")
 print(f"x̄ ± 3s = ({intervals['3s'][0]:.3f}, {intervals['3s'][1]:.3f})")
 
 counts, percentages = count_values_in_intervals(sorted_numbers, intervals)
 print(f"\nValues within intervals:")
-print(f"x̄ ± s:  {counts['1s']} values ({percentages['1s']:.2f}%)")
-print(f"x̄ ± 2s: {counts['2s']} values ({percentages['2s']:.2f}%)")
-print(f"x̄ ± 3s: {counts['3s']} values ({percentages['3s']:.2f}%)")
+print(f"x̄ ± 1s: {counts['1s']:2} values ({percentages['1s']:5.2f}%) — Expected ~68%")
+print(f"x̄ ± 2s: {counts['2s']:2} values ({percentages['2s']:5.2f}%) — Expected ~95%")
+print(f"x̄ ± 3s: {counts['3s']:2} values ({percentages['3s']:5.2f}%) — Expected ~99.7%")
 
-# Create beautiful visualizations
-q1, q2, q3 = calculate_quartiles(sorted_numbers)
+# Z-scores
+print(f"\n{'='*50}")
+print(f"Z-SCORES")
+print(f"{'='*50}")
+z_scores = calculate_z_scores(sorted_numbers, mean, std_deviation)
+print(f"{'Value':<10} {'Z-Score':<10}")
+print(f"{'-'*20}")
+for val, z in zip(sorted_numbers, z_scores):
+    print(f"{val:<10} {z:<10.4f}")
+
+# Create visualizations
+print(f"\n{'='*50}")
 create_visualizations(sorted_numbers, mean, std_deviation, q1, median, q3)
